@@ -1,5 +1,5 @@
 export interface SymbolTransactionStatisticsInterface {
-  totalQuantity: number
+  totalCount: number
   totalValue: number
   averagePrice: number
 }
