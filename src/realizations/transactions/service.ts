@@ -12,8 +12,27 @@ class TransactionService implements TransactionServiceInterface {
   createTransaction(transaction: TransactionInterface): Promise<TransactionInterface> {
     return this.transactionModel.create(transaction)
   }
-  getSymbolStatistics(symbol: TransactionSymbol): Promise<SymbolTransactionStatisticsInterface> {
-    throw new Error("Method not implemented.")
+  async getSymbolStatistics(
+    symbol: TransactionSymbol,
+  ): Promise<SymbolTransactionStatisticsInterface> {
+    const aggregationResult = await this.transactionModel.aggregate([
+      { $match: { symbol } },
+      {
+        $group: {
+          _id: null,
+          averagePrice: { $avg: "$price" },
+          totalCount: { $sum: 1 },
+          totalValue: { $sum: { $multiply: ["$price", "$quantity"] } },
+        },
+      },
+    ])
+
+    const [result] = aggregationResult
+    return {
+      averagePrice: result?.averagePrice ?? 0,
+      totalCount: result?.totalCount ?? 0,
+      totalValue: result?.totalValue ?? 0,
+    }
   }
 }
 
